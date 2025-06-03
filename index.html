@@ -3,24 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime-Raider</title>
-    <style>
+    <title>Anime-Raider (Not Recommended for Public Use)</title> <style>
         body {
             font-family: sans-serif;
             margin: 0;
-            /* Placeholder URL - REPLACE THIS WITH YOUR ACTUAL IMAGE URL */
             background-image: url('https://via.placeholder.com/1920x1080/000000/FFFFFF?text=Background+Image');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            background-color: rgba(0, 0, 0, 0.5); /* 背景を暗くするための追加 */
+            background-color: rgba(0, 0, 0, 0.5);
             color: #eee;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            transform: scale(0.8); /* 全体を小さくする */
-            transform-origin: center center; /* スケール変換の原点を中央に設定 */
+            /* Removed transform: scale(0.8); for better default sizing */
         }
         .overlay {
             background-color: rgba(0, 0, 0, 0.7);
@@ -133,6 +130,8 @@
             background-color: #222;
             color: #eee;
             border: 1px solid #444;
+            max-height: 200px; /* Make status div scrollable */
+            overflow-y: auto;
         }
         .success {
             background-color: #28a745;
@@ -153,7 +152,7 @@
         <div class="container">
             <h1>Anime-Raider</h1>
 
-            <label for="tokenInput">Discordトークン:</label>
+            <label for="tokenInput">Discordトークン: <span style="color: red;">(警告: セキュリティ上のリスクがあります)</span></label>
             <textarea id="tokenInput" placeholder="Discordトークンを改行区切りで入力"></textarea>
 
             <label for="channelIdInput">チャンネルID:</label>
@@ -163,8 +162,7 @@
             <textarea id="messageInput" placeholder="送信するメッセージを入力"></textarea>
 
             <div class="slider-group">
-                <label for="speedSlider">送信速度 (間隔: <span id="speedValue">1000</span> ms) - 右にすると速くなります</label>
-                <input type="range" id="speedSlider" min="100" max="10000" value="1000" oninput="document.getElementById('speedValue').textContent=this.value">
+                <label for="speedSlider">送信速度 (間隔: <span id="speedValue">1000</span> ms) - 左にすると速くなります</label> <input type="range" id="speedSlider" min="100" max="10000" value="1000" oninput="document.getElementById('speedValue').textContent=this.value">
             </div>
 
             <div class="slider-group">
@@ -202,8 +200,8 @@
     <script>
         let isSending = false;
         let stopRequested = false;
+        let currentIntervalId = null; // To store interval ID for clearing
 
-        // 全ての絵文字のリストを保持する配列 (一部抜粋)
         const allEmojis = [
             '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
             '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🥺', '😤', '😠',
@@ -216,7 +214,7 @@
             '👢', '🥿', '🩰', '🎩', '👑', '👒', '🎓', '🧢', '🎗️', '🎽', '🧣', '🧤', '🧥', '🧦', '👗', '👘', '🥻', '🩱', '🩲', '🩳',
             '🩴', '👙', '💼', '🎒', '👜', '👛', '👝', '🛍️', '🛒', '🎁', '🎀', '🎈', '🎉', '🎊', '🎋', '🎍', '🎎', '🎏', '🎐', '🎑',
             '🧧', '🎇', '🎆', '💫', '🌟', '✨', '⚡', '🔥', '💥', '☄️', '☀️', '🌞', '🌛', '🌜', '🌑', '🌓', '🌔', '🌕', '🌖',
-            '🌗', '🌘', '🌙', '🌎', '🌍', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🛣️
+            '🌗', '🌘', '🌙', '🌎', '🌍', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🛣️'
         ];
 
         function generateRandomString(length) {
@@ -242,9 +240,17 @@
             }
         }
 
+        // Function to append text to status div and scroll to bottom
+        function updateStatus(message, className = '') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent += (statusDiv.textContent ? '\n' : '') + message;
+            statusDiv.className = className;
+            statusDiv.scrollTop = statusDiv.scrollHeight; // Scroll to bottom
+        }
+
         function stopSending() {
             stopRequested = true;
-            document.getElementById('status').textContent += "\n\n--- 送信停止リクエストを受信しました。現在の処理が完了次第停止します。 ---";
+            updateStatus("\n\n--- 送信停止リクエストを受信しました。現在の処理が完了次第停止します。 ---");
             document.querySelector('button').disabled = false;
             document.getElementById('stopButton').disabled = true;
         }
@@ -258,8 +264,9 @@
             const tokensRaw = document.getElementById('tokenInput').value;
             const channelIdsRaw = document.getElementById('channelIdInput').value;
             const baseMessage = document.getElementById('messageInput').value;
-            const speedSliderValue = parseInt(document.getElementById('speedSlider').value, 10);
-            const sendInterval = 10100 - speedSliderValue;
+            // The speed slider value directly becomes the interval.
+            // Minimum is 100ms, maximum is 10000ms.
+            const sendInterval = parseInt(document.getElementById('speedSlider').value, 10); 
             
             const messageCount = parseInt(document.getElementById('countSlider').value, 10);
             const mentionCount = parseInt(document.getElementById('mentionCountSlider').value, 10);
@@ -268,31 +275,28 @@
             const randomStringLength = parseInt(document.getElementById('randomStringLengthSlider').value, 10);
             
             const statusDiv = document.getElementById('status');
+            statusDiv.textContent = ''; // Clear previous status
 
             const tokens = tokensRaw.split('\n').map(t => t.trim()).filter(t => t.length > 0);
             const channelIds = channelIdsRaw.split('\n').map(id => id.trim()).filter(id => id.length > 0);
             const mentionIds = mentionIdsRaw.split(',').map(id => id.trim()).filter(id => id.length > 0);
 
             if (tokens.length === 0) {
-                statusDiv.className = 'error';
-                statusDiv.textContent = 'エラー: Discordトークンを入力してください。';
+                updateStatus('エラー: Discordトークンを入力してください。', 'error');
                 return;
             }
             if (channelIds.length === 0) {
-                statusDiv.className = 'error';
-                statusDiv.textContent = 'エラー: チャンネルIDを入力してください。';
+                updateStatus('エラー: チャンネルIDを入力してください。', 'error');
                 return;
             }
             if (!baseMessage) {
-                statusDiv.className = 'error';
-                statusDiv.textContent = 'エラー: 送信するメッセージを入力してください。';
+                updateStatus('エラー: 送信するメッセージを入力してください。', 'error');
                 return;
             }
 
             isSending = true;
             stopRequested = false;
-            statusDiv.className = '';
-            statusDiv.textContent = '送信を開始します...';
+            updateStatus('送信を開始します...');
             document.querySelector('button').disabled = true;
             document.getElementById('stopButton').disabled = false;
 
@@ -303,7 +307,7 @@
 
             for (let i = 0; i < messageCount; i++) {
                 if (stopRequested) {
-                    statusDiv.textContent += `\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`;
+                    updateStatus(`\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${i * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`);
                     break;
                 }
 
@@ -311,25 +315,22 @@
 
                 for (const channelId of channelIds) {
                     if (stopRequested) {
-                        statusDiv.textContent += `\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`;
+                        updateStatus(`\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${i * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`);
                         break;
                     }
 
                     let messageToSend = baseMessage;
 
-                    // ランダムメンションを追加
                     if (mentionIds.length > 0 && mentionCount > 0) {
                         const shuffledMentionIds = [...mentionIds].sort(() => 0.5 - Math.random());
                         const selectedMentions = shuffledMentionIds.slice(0, Math.min(mentionCount, mentionIds.length));
                         messageToSend += selectedMentions.map(id => ` <@${id}>`).join('');
                     }
 
-                    // ランダム文字列を追加
                     if (addRandomString) {
                         messageToSend += ` ${generateRandomString(randomStringLength)}`;
                     }
 
-                    // ランダムな絵文字を追加
                     messageToSend += ` ${getRandomEmoji()}`;
 
                     const headers = {
@@ -353,34 +354,32 @@
 
                         if (response.ok) {
                             successfulSends++;
-                            statusDiv.className = 'success';
-                            statusDiv.textContent = `[+] (${i + 1}/${messageCount}) チャンネル ${channelId} にメッセージを送信しました。(トークン: ${currentTokenIndex + 1}/${tokens.length})\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`;
+                            updateStatus(`[+] (${i + 1}/${messageCount}) チャンネル ${channelId} にメッセージを送信しました。(トークン: ${currentTokenIndex + 1}/${tokens.length})\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`, 'success');
                         } else if (response.status === 429) {
                             rateLimitedCount++;
                             const retryAfter = response.headers.get('Retry-After');
-                            statusDiv.className = 'rate-limited';
-                            statusDiv.textContent = `[!] (${i + 1}/${messageCount}) チャンネル ${channelId} でレートリミットに達しました。(トークン: ${currentTokenIndex + 1}/${tokens.length}) ${retryAfter ? retryAfter + '秒後に再試行します。' : ''}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}\nエラー詳細: ${responseText}`;
+                            updateStatus(`[!] (${i + 1}/${messageCount}) チャンネル ${channelId} でレートリミットに達しました。(トークン: ${currentTokenIndex + 1}/${tokens.length}) ${retryAfter ? retryAfter + '秒後に再試行します。' : ''}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}\nエラー詳細: ${responseText}`, 'rate-limited');
                             if (retryAfter) {
                                 await new Promise(resolve => setTimeout(resolve, parseInt(retryAfter, 10) * 1000 + 100));
                             }
                         } else {
                             failedSends++;
-                            statusDiv.className = 'error';
-                            statusDiv.textContent = `[-] (${i + 1}/${messageCount}) チャンネル ${channelId} へのメッセージ送信に失敗しました。ステータス: ${response.status} エラー: ${responseText}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`;
+                            updateStatus(`[-] (${i + 1}/${messageCount}) チャンネル ${channelId} へのメッセージ送信に失敗しました。ステータス: ${response.status} エラー: ${responseText}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`, 'error');
                         }
                     } catch (error) {
                         failedSends++;
-                        statusDiv.className = 'error';
-                        statusDiv.textContent = `[-] (${i + 1}/${messageCount}) ネットワークエラーまたは予期せぬエラーが発生しました: ${error.message}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`;
+                        updateStatus(`[-] (${i + 1}/${messageCount}) ネットワークエラーまたは予期せぬエラーが発生しました: ${error.message}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`, 'error');
                         console.error("Fetch error:", error);
                     }
-                    await new Promise(resolve => setTimeout(resolve, sendInterval));
+                    if (!stopRequested) { // Only wait if not stopping
+                        await new Promise(resolve => setTimeout(resolve, sendInterval));
+                    }
                 }
                 currentTokenIndex = (currentTokenIndex + 1) % tokens.length;
             }
 
             if (!stopRequested) {
-                statusDiv.textContent += `\n\n--- 送信完了 ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`;
+                updateStatus(`\n\n--- 送信完了 ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`);
             }
             
             isSending = false;
