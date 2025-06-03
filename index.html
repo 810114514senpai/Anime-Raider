@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime-Raider (Not Recommended for Public Use)</title> <style>
+    <title>Anime-Raider</title>
+    <style>
         body {
             font-family: sans-serif;
             margin: 0;
-            background-image: url('https://via.placeholder.com/1920x1080/000000/FFFFFF?text=Background+Image');
+            background-image: url('https://cdn.discordapp.com/attachments/1379153981544333375/1379546528389267628/IMG5008.jpg?ex=6840a253&is=683f50d3&hm=4b726dc640d8900224277a6539b9b52e609ecf104e318219546abfc0e920fa69&');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            background-color: rgba(0, 0, 0, 0.5);
             color: #eee;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* 画面上部に寄せる */
             min-height: 100vh;
-            /* Removed transform: scale(0.8); for better default sizing */
+            padding: 20px; /* 全体のパディングを追加 */
+            box-sizing: border-box;
         }
         .overlay {
             background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
+            max-width: 800px; /* 最大幅を広くする */
             width: 100%;
             box-sizing: border-box;
+            margin-top: 20px; /* 上部の余白 */
+            margin-bottom: 20px; /* 下部の余白 */
         }
         .container {
             background-color: rgba(255, 255, 255, 0.1);
@@ -123,15 +126,11 @@
             margin-top: 25px;
             padding: 15px;
             border-radius: 5px;
-            background-color: #e9ecef;
-            color: #495057;
-            word-wrap: break-word;
-            white-space: pre-wrap;
             background-color: #222;
             color: #eee;
             border: 1px solid #444;
-            max-height: 200px; /* Make status div scrollable */
-            overflow-y: auto;
+            word-wrap: break-word;
+            white-space: pre-wrap;
         }
         .success {
             background-color: #28a745;
@@ -145,6 +144,26 @@
             background-color: #ffc107;
             color: #343a40;
         }
+        /* New styles for Poll options */
+        .poll-option-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .poll-option-input input {
+            margin-bottom: 0;
+            flex-grow: 1;
+        }
+        .poll-option-input button {
+            width: auto;
+            padding: 8px 12px;
+            margin-left: 10px;
+            background-color: #6c757d;
+            border: none;
+        }
+        .poll-option-input button:hover {
+            background-color: #5a6268;
+        }
     </style>
 </head>
 <body>
@@ -152,17 +171,18 @@
         <div class="container">
             <h1>Anime-Raider</h1>
 
-            <label for="tokenInput">Discordトークン: <span style="color: red;">(警告: セキュリティ上のリスクがあります)</span></label>
+            <label for="tokenInput">Discordトークン:</label>
             <textarea id="tokenInput" placeholder="Discordトークンを改行区切りで入力"></textarea>
 
             <label for="channelIdInput">チャンネルID:</label>
             <textarea id="channelIdInput" placeholder="メッセージを送信するチャンネルIDを改行区切りで入力"></textarea>
 
             <label for="messageInput">メッセージ:</label>
-            <textarea id="messageInput" placeholder="送信するメッセージを入力"></textarea>
+            <textarea id="messageInput" placeholder="送信するメッセージを入力 (投票を送信する場合、ここは投票の補足メッセージとして扱われます)"></textarea>
 
             <div class="slider-group">
-                <label for="speedSlider">送信速度 (間隔: <span id="speedValue">1000</span> ms) - 左にすると速くなります</label> <input type="range" id="speedSlider" min="100" max="10000" value="1000" oninput="document.getElementById('speedValue').textContent=this.value">
+                <label for="speedSlider">送信速度 (間隔: <span id="speedValue">1000</span> ms) - 右にすると速くなります</label>
+                <input type="range" id="speedSlider" min="100" max="10000" value="1000" oninput="document.getElementById('speedValue').textContent=this.value">
             </div>
 
             <div class="slider-group">
@@ -188,6 +208,45 @@
                 <input type="range" id="randomStringLengthSlider" min="1" max="20" value="5" oninput="document.getElementById('randomStringLengthValue').textContent=this.value">
             </div>
 
+            <hr>
+            <h2>オプション機能</h2>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="enableReplyCheckbox" onchange="toggleReplyInput()">
+                <label for="enableReplyCheckbox">指定メッセージに返信する</label>
+            </div>
+            <div id="replyToMessageGroup" style="display: none;">
+                <label for="replyToMessageIdInput">返信するメッセージID:</label>
+                <input type="text" id="replyToMessageIdInput" placeholder="返信先のメッセージIDを入力">
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="enablePollCheckbox" onchange="togglePollOptions()">
+                <label for="enablePollCheckbox">投票を作成する</label>
+            </div>
+            <div id="pollOptionsGroup" style="display: none;">
+                <label for="pollQuestionInput">投票の質問:</label>
+                <input type="text" id="pollQuestionInput" placeholder="例: 今日のランチは何にする？">
+
+                <label>投票の選択肢:</label>
+                <div id="pollOptionsContainer">
+                    <div class="poll-option-input">
+                        <input type="text" class="poll-option" placeholder="選択肢1">
+                        <button onclick="removePollOption(this)">削除</button>
+                    </div>
+                    <div class="poll-option-input">
+                        <input type="text" class="poll-option" placeholder="選択肢2">
+                        <button onclick="removePollOption(this)">削除</button>
+                    </div>
+                </div>
+                <button onclick="addPollOption()">選択肢を追加</button>
+                <br><br>
+                <label for="pollDurationSlider">投票の期間 (時間): <span id="pollDurationValue">24</span></label>
+                <input type="range" id="pollDurationSlider" min="1" max="168" value="24" oninput="document.getElementById('pollDurationValue').textContent=this.value">
+            </div>
+
+            <hr>
+
             <div class="button-group">
                 <button onclick="startSending()">メッセージを送信</button>
                 <button id="stopButton" onclick="stopSending()" disabled>送信を停止</button>
@@ -200,12 +259,11 @@
     <script>
         let isSending = false;
         let stopRequested = false;
-        let currentIntervalId = null; // To store interval ID for clearing
 
         const allEmojis = [
             '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
             '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🥺', '😤', '😠',
-            '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😢', '😭', '🤥', '🤫', '🤭','🤔', '🤐', '🤫',
+            '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😢', '😭', '🤥', '🤫', '🤭', ' discreet', '🤔', '🤐', '🤫', ' render',
             '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '🥳', '😎', '🤓', '🧐', '🤯', '🤫', '🤔', '🤥', '😶', '😐', '😑', '😬', '🙄',
             '😤', '😠', '😡', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻',
             '😼', '😽', '🙀', '😿', '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤙', '🤘', '🤟', '👏', '🙌', '👐',
@@ -213,8 +271,32 @@
             '💋', '🩸', '🦠', '🩻', '💉', '💊', '🩹', '🩼', '🩱', '🩲', '🩳', '🩴', '👙', '👚', '👕', '👖', '👟', '👞', '👠', '👡',
             '👢', '🥿', '🩰', '🎩', '👑', '👒', '🎓', '🧢', '🎗️', '🎽', '🧣', '🧤', '🧥', '🧦', '👗', '👘', '🥻', '🩱', '🩲', '🩳',
             '🩴', '👙', '💼', '🎒', '👜', '👛', '👝', '🛍️', '🛒', '🎁', '🎀', '🎈', '🎉', '🎊', '🎋', '🎍', '🎎', '🎏', '🎐', '🎑',
-            '🧧', '🎇', '🎆', '💫', '🌟', '✨', '⚡', '🔥', '💥', '☄️', '☀️', '🌞', '🌛', '🌜', '🌑', '🌓', '🌔', '🌕', '🌖',
-            '🌗', '🌘', '🌙', '🌎', '🌍', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🛣️'
+            '🧧', '🎇', '🎆', ' sparkles', '💫', '🌟', '✨', '⚡', '🔥', '💥', '☄️', '☀️', '🌞', '🌛', '🌜', '🌑', '🌓', '🌔', '🌕', '🌖',
+            '🌗', '🌘', '🌙', '🌎', '🌍', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🛣️',
+            ' railway_track', ' bridge_at_night', ' cityscape', ' night_with_stars', ' milky_way', ' on_coming_automobile', ' taxi', ' red_car',
+            ' blue_car', ' truck', 'articulated_lorry', 'bus', 'oncoming_bus', 'racing_car', 'motorcycle', 'scooter', 'bike', 'motor_scooter',
+            'police_car', 'oncoming_police_car', 'fire_engine', 'ambulance', 'minibus', 'delivery_truck', 'ferry', 'speedboat', 'boat',
+            'canoe', 'sailboat', 'passenger_ship', 'flight_avion', 'helicopter', 'train', 'mountain_railway', 'steam_locomotive',
+            'bullettrain_side', 'bullettrain_front', 'tram', 'monorail', 'station', 'aerial_tramway', 'suspension_railway', 'vertical_traffic_light',
+            'horizontal_traffic_light', 'construction', 'road_work', 'classical_building', 'post_office', 'hospital', 'bank', 'hotel', 'love_hotel',
+            'convenience_store', 'school', 'department_store', 'factory', 'japanese_castle', 'european_castle', 'wedding', 'tokyo_tower',
+            'statue_of_liberty', 'church', 'mosque', 'synagogue', 'kaaba', 'shinto_shrine', 'crossed_flags', 'fountain', 'tent', 'foggy',
+            'night_clear', 'stars', 'cloud', 'partly_sunny', 'thunder_cloud_and_rain', 'rainbow', 'bridge_at_night', 'volcano', 'milky_way',
+            'ocean', 'cat', 'dog', 'mouse', 'hamster', 'rabbit', 'fox', 'bear', 'panda', 'koala', 'tiger', 'lion', 'cow', 'pig', 'boar',
+            'monkey', 'gorilla', 'orangutan', 'chicken', 'penguin', 'bird', 'baby_chick', 'hatching_chick', 'eagle', 'duck', 'swan',
+            'owl', 'bat', 'wolf', 'wild_boar', 'horse', 'unicorn', 'honeybee', 'bug', 'butterfly', 'snail', 'beetle', 'ant', 'mosquito',
+            'cricket', 'spider', 'scorpion', 'turtle', 'snake', 'lizard', 't-rex', 'sauropod', 'octopus', 'squid', 'shrimp', 'lobster',
+            'crab', 'blowfish', 'tropical_fish', 'fish', 'dolphin', 'whale', 'shark', 'crocodile', 'leopard', 'zebra', 'kangaroo',
+            'badger', 'otter', 'hedgehog', 'skunk', 'racoon', 'llama', 'hippo', 'parrot', 'peacock', 'platypus', 'polar_bear', 'rhinoceros',
+            'seal', 'walrus', 'kangaroo', 'owl', 'bat', 'wolf', 'wild_boar', 'horse', 'unicorn', 'honeybee', 'bug', 'butterfly', 'snail',
+            'beetle', 'ant', 'mosquito', 'cricket', 'spider', 'scorpion', 'turtle', 'snake', 'lizard', 't-rex', 'sauropod', 'octopus',
+            'squid', 'shrimp', 'lobster', 'crab', 'blowfish', 'tropical_fish', 'fish', 'dolphin', 'whale', 'shark', 'crocodile', 'leopard',
+            'zebra', 'kangaroo', 'badger', 'otter', 'hedgehog', 'skunk', 'racoon', 'llama', 'hippo', 'parrot', 'peacock', 'platypus',
+            'polar_bear', 'rhinoceros', 'seal', 'walrus', 'kangaroo', 'owl', 'bat', 'wolf', 'wild_boar', 'horse', 'unicorn', 'honeybee',
+            'bug', 'butterfly', 'snail', 'beetle', 'ant', 'mosquito', 'cricket', 'spider', 'scorpion', 'turtle', 'snake', 'lizard',
+            't-rex', 'sauropod', 'octopus', 'squid', 'shrimp', 'lobster', 'crab', 'blowfish', 'tropical_fish', 'fish', 'dolphin', 'whale',
+            'shark', 'crocodile', 'leopard', 'zebra', 'kangaroo', 'badger', 'otter', 'hedgehog', 'skunk', 'racoon', 'llama', 'hippo',
+            'parrot', 'peacock', 'platypus', 'polar_bear', 'rhinoceros', 'seal', 'walrus', ' kangaroo'
         ];
 
         function generateRandomString(length) {
@@ -240,17 +322,46 @@
             }
         }
 
-        // Function to append text to status div and scroll to bottom
-        function updateStatus(message, className = '') {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent += (statusDiv.textContent ? '\n' : '') + message;
-            statusDiv.className = className;
-            statusDiv.scrollTop = statusDiv.scrollHeight; // Scroll to bottom
+        function toggleReplyInput() {
+            const checkbox = document.getElementById('enableReplyCheckbox');
+            const replyGroup = document.getElementById('replyToMessageGroup');
+            if (checkbox.checked) {
+                replyGroup.style.display = 'block';
+            } else {
+                replyGroup.style.display = 'none';
+            }
+        }
+
+        function togglePollOptions() {
+            const checkbox = document.getElementById('enablePollCheckbox');
+            const pollGroup = document.getElementById('pollOptionsGroup');
+            if (checkbox.checked) {
+                pollGroup.style.display = 'block';
+            } else {
+                pollGroup.style.display = 'none';
+            }
+        }
+
+        function addPollOption() {
+            const container = document.getElementById('pollOptionsContainer');
+            const optionCount = container.querySelectorAll('.poll-option').length;
+            const newOptionDiv = document.createElement('div');
+            newOptionDiv.className = 'poll-option-input';
+            newOptionDiv.innerHTML = `
+                <input type="text" class="poll-option" placeholder="選択肢${optionCount + 1}">
+                <button onclick="removePollOption(this)">削除</button>
+            `;
+            container.appendChild(newOptionDiv);
+        }
+
+        function removePollOption(buttonElement) {
+            const parentDiv = buttonElement.parentNode;
+            parentDiv.remove();
         }
 
         function stopSending() {
             stopRequested = true;
-            updateStatus("\n\n--- 送信停止リクエストを受信しました。現在の処理が完了次第停止します。 ---");
+            document.getElementById('status').textContent += "\n\n--- 送信停止リクエストを受信しました。現在の処理が完了次第停止します。 ---";
             document.querySelector('button').disabled = false;
             document.getElementById('stopButton').disabled = true;
         }
@@ -263,10 +374,9 @@
 
             const tokensRaw = document.getElementById('tokenInput').value;
             const channelIdsRaw = document.getElementById('channelIdInput').value;
-            const baseMessage = document.getElementById('messageInput').value;
-            // The speed slider value directly becomes the interval.
-            // Minimum is 100ms, maximum is 10000ms.
-            const sendInterval = parseInt(document.getElementById('speedSlider').value, 10); 
+            let baseMessage = document.getElementById('messageInput').value;
+            const speedSliderValue = parseInt(document.getElementById('speedSlider').value, 10);
+            const sendInterval = 10100 - speedSliderValue;
             
             const messageCount = parseInt(document.getElementById('countSlider').value, 10);
             const mentionCount = parseInt(document.getElementById('mentionCountSlider').value, 10);
@@ -274,29 +384,59 @@
             const addRandomString = document.getElementById('addRandomStringCheckbox').checked;
             const randomStringLength = parseInt(document.getElementById('randomStringLengthSlider').value, 10);
             
+            const enableReply = document.getElementById('enableReplyCheckbox').checked;
+            const replyToMessageId = document.getElementById('replyToMessageIdInput').value.trim();
+
+            const enablePoll = document.getElementById('enablePollCheckbox').checked;
+            const pollQuestion = document.getElementById('pollQuestionInput').value.trim();
+            const pollOptionsElements = document.querySelectorAll('.poll-option');
+            const pollOptions = Array.from(pollOptionsElements).map(input => input.value.trim()).filter(val => val.length > 0);
+            const pollDuration = parseInt(document.getElementById('pollDurationSlider').value, 10); // in hours
+
             const statusDiv = document.getElementById('status');
-            statusDiv.textContent = ''; // Clear previous status
 
             const tokens = tokensRaw.split('\n').map(t => t.trim()).filter(t => t.length > 0);
             const channelIds = channelIdsRaw.split('\n').map(id => id.trim()).filter(id => id.length > 0);
             const mentionIds = mentionIdsRaw.split(',').map(id => id.trim()).filter(id => id.length > 0);
 
             if (tokens.length === 0) {
-                updateStatus('エラー: Discordトークンを入力してください。', 'error');
+                statusDiv.className = 'error';
+                statusDiv.textContent = 'エラー: Discordトークンを入力してください。';
                 return;
             }
             if (channelIds.length === 0) {
-                updateStatus('エラー: チャンネルIDを入力してください。', 'error');
+                statusDiv.className = 'error';
+                statusDiv.textContent = 'エラー: チャンネルIDを入力してください。';
                 return;
             }
-            if (!baseMessage) {
-                updateStatus('エラー: 送信するメッセージを入力してください。', 'error');
+            if (!baseMessage && !enablePoll) { // メッセージも投票も無い場合はエラー
+                statusDiv.className = 'error';
+                statusDiv.textContent = 'エラー: 送信するメッセージを入力するか、投票を作成するオプションをチェックしてください。';
                 return;
             }
+            if (enableReply && replyToMessageId.length === 0) {
+                statusDiv.className = 'error';
+                statusDiv.textContent = 'エラー: 返信を有効にする場合、返信するメッセージIDを入力してください。';
+                return;
+            }
+            if (enablePoll) {
+                if (pollQuestion.length === 0) {
+                    statusDiv.className = 'error';
+                    statusDiv.textContent = 'エラー: 投票の質問を入力してください。';
+                    return;
+                }
+                if (pollOptions.length < 2) {
+                    statusDiv.className = 'error';
+                    statusDiv.textContent = 'エラー: 投票には少なくとも2つの選択肢が必要です。';
+                    return;
+                }
+            }
+
 
             isSending = true;
             stopRequested = false;
-            updateStatus('送信を開始します...');
+            statusDiv.className = '';
+            statusDiv.textContent = '送信を開始します...';
             document.querySelector('button').disabled = true;
             document.getElementById('stopButton').disabled = false;
 
@@ -307,7 +447,7 @@
 
             for (let i = 0; i < messageCount; i++) {
                 if (stopRequested) {
-                    updateStatus(`\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${i * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`);
+                    statusDiv.textContent += `\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`;
                     break;
                 }
 
@@ -315,71 +455,107 @@
 
                 for (const channelId of channelIds) {
                     if (stopRequested) {
-                        updateStatus(`\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${i * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`);
+                        statusDiv.textContent += `\n\n--- 送信がユーザーによって停止されました ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`;
                         break;
                     }
 
-                    let messageToSend = baseMessage;
+                    let payload = {
+                        "content": baseMessage,
+                        "tts": false
+                    };
 
+                    // ランダムメンションを追加
                     if (mentionIds.length > 0 && mentionCount > 0) {
                         const shuffledMentionIds = [...mentionIds].sort(() => 0.5 - Math.random());
                         const selectedMentions = shuffledMentionIds.slice(0, Math.min(mentionCount, mentionIds.length));
-                        messageToSend += selectedMentions.map(id => ` <@${id}>`).join('');
+                        payload.content += selectedMentions.map(id => ` <@${id}>`).join('');
                     }
 
+                    // ランダム文字列を追加
                     if (addRandomString) {
-                        messageToSend += ` ${generateRandomString(randomStringLength)}`;
+                        payload.content += ` ${generateRandomString(randomStringLength)}`;
                     }
 
-                    messageToSend += ` ${getRandomEmoji()}`;
+                    // ランダムな絵文字を追加
+                    payload.content += ` ${getRandomEmoji()}`;
+
+                    // 返信機能
+                    if (enableReply && replyToMessageId.length > 0) {
+                        payload.message_reference = {
+                            "channel_id": channelId, // 返信するチャンネルIDは送信先と同じ
+                            "message_id": replyToMessageId
+                        };
+                        payload.allowed_mentions = {
+                            "parse": ["users", "roles", "everyone"], // デフォルトのメンション設定
+                            "replied_user": true // 返信先のユーザーをメンションするかどうか
+                        };
+                    }
+
+                    // 投票機能
+                    if (enablePoll) {
+                        payload.poll = {
+                            "question": {
+                                "text": pollQuestion
+                            },
+                            "answers": pollOptions.map((option, index) => ({
+                                "poll_media": {
+                                    "text": option
+                                }
+                            })),
+                            "duration": pollDuration * 3600, // Duration in seconds (Discord API expects seconds)
+                            "allow_multiselect": false // 複数選択を許可しない (任意で変更可能)
+                        };
+                        // 投票を作成する場合、contentは投票の補足メッセージとして扱われる
+                        // contentが空の場合、Discord APIによってはエラーになる可能性があるため、空でないことを確認
+                        if (payload.content.trim() === '') {
+                             payload.content = "投票が開始されました！"; // デフォルトメッセージ
+                        }
+                    }
 
                     const headers = {
                         "Authorization": currentToken,
                         "Content-Type": "application/json",
                     };
 
-                    const data = {
-                        "content": messageToSend,
-                        "tts": false
-                    };
-
                     try {
                         const response = await fetch(`https://discord.com/api/v9/channels/${channelId}/messages`, {
                             method: 'POST',
                             headers: headers,
-                            body: JSON.stringify(data)
+                            body: JSON.stringify(payload)
                         });
 
                         const responseText = await response.text();
 
                         if (response.ok) {
                             successfulSends++;
-                            updateStatus(`[+] (${i + 1}/${messageCount}) チャンネル ${channelId} にメッセージを送信しました。(トークン: ${currentTokenIndex + 1}/${tokens.length})\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`, 'success');
+                            statusDiv.className = 'success';
+                            statusDiv.textContent = `[+] (${i + 1}/${messageCount}) チャンネル ${channelId} に${enablePoll ? '投票とメッセージ' : 'メッセージ'}を送信しました。(トークン: ${currentTokenIndex + 1}/${tokens.length})\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`;
                         } else if (response.status === 429) {
                             rateLimitedCount++;
                             const retryAfter = response.headers.get('Retry-After');
-                            updateStatus(`[!] (${i + 1}/${messageCount}) チャンネル ${channelId} でレートリミットに達しました。(トークン: ${currentTokenIndex + 1}/${tokens.length}) ${retryAfter ? retryAfter + '秒後に再試行します。' : ''}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}\nエラー詳細: ${responseText}`, 'rate-limited');
+                            statusDiv.className = 'rate-limited';
+                            statusDiv.textContent = `[!] (${i + 1}/${messageCount}) チャンネル ${channelId} でレートリミットに達しました。(トークン: ${currentTokenIndex + 1}/${tokens.length}) ${retryAfter ? retryAfter + '秒後に再試行します。' : ''}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}\nエラー詳細: ${responseText}`;
                             if (retryAfter) {
                                 await new Promise(resolve => setTimeout(resolve, parseInt(retryAfter, 10) * 1000 + 100));
                             }
                         } else {
                             failedSends++;
-                            updateStatus(`[-] (${i + 1}/${messageCount}) チャンネル ${channelId} へのメッセージ送信に失敗しました。ステータス: ${response.status} エラー: ${responseText}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`, 'error');
+                            statusDiv.className = 'error';
+                            statusDiv.textContent = `[-] (${i + 1}/${messageCount}) チャンネル ${channelId} への${enablePoll ? '投票とメッセージ' : 'メッセージ'}送信に失敗しました。ステータス: ${response.status} エラー: ${responseText}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`;
                         }
                     } catch (error) {
                         failedSends++;
-                        updateStatus(`[-] (${i + 1}/${messageCount}) ネットワークエラーまたは予期せぬエラーが発生しました: ${error.message}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`, 'error');
+                        statusDiv.className = 'error';
+                        statusDiv.textContent = `[-] (${i + 1}/${messageCount}) ネットワークエラーまたは予期せぬエラーが発生しました: ${error.message}\n成功: ${successfulSends}, 失敗: ${failedSends}, レートリミット: ${rateLimitedCount}`;
                         console.error("Fetch error:", error);
                     }
-                    if (!stopRequested) { // Only wait if not stopping
-                        await new Promise(resolve => setTimeout(resolve, sendInterval));
-                    }
+                    await new Promise(resolve => setTimeout(resolve, sendInterval));
                 }
                 currentTokenIndex = (currentTokenIndex + 1) % tokens.length;
             }
 
             if (!stopRequested) {
-                updateStatus(`\n\n--- 送信完了 ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`);
+                statusDiv.textContent += `\n\n--- 送信完了 ---\n合計送信試行数: ${messageCount * channelIds.length}\n成功: ${successfulSends}\n失敗: ${failedSends}\nレートリミット遭遇: ${rateLimitedCount}`;
             }
             
             isSending = false;
