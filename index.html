@@ -8,18 +8,21 @@
         body {
             font-family: sans-serif;
             margin: 0;
-            background-image: url('https://cdn.discordapp.com/attachments/1379153981544333375/1379546528389267628/IMG5008.jpg?ex=6840a253&is=683f50d3&hm=4b726dc640d8900224277a6539b9b52e609ecf104e318219546abfc0e920fa69&');
+            background-image: url('https://cdn.discordapp.com/attachments/1379153981544333375/1379546528389267628/IMG_5008.jpg?ex=6840a253&is=683f50d3&hm=4b726dc640d8900224277a6539b9b52e609ecf104e318219546abfc0e920fa69&');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            color: #eee; /* Darken text for readability on dark background */
+            background-color: rgba(0, 0, 0, 0.5); /* 背景を暗くするための追加 */
+            color: #eee;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            transform: scale(0.8); /* 全体を小さくする */
+            transform-origin: center center; /* スケール変換の原点を中央に設定 */
         }
         .overlay {
-            background-color: rgba(0, 0, 0, 0.7); /* Dark overlay for better readability */
+            background-color: rgba(0, 0, 0, 0.7);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -28,13 +31,13 @@
             box-sizing: border-box;
         }
         .container {
-            background-color: rgba(255, 255, 255, 0.1); /* Slightly transparent white for content area */
+            background-color: rgba(255, 255, 255, 0.1);
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            color: #00bfff; /* Bright blue for title */
+            color: #00bfff;
             text-align: center;
             margin-bottom: 25px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -43,7 +46,7 @@
             display: block;
             margin-bottom: 8px;
             font-weight: bold;
-            color: #c0c0c0; /* Lighter gray for labels */
+            color: #c0c0c0;
         }
         input[type="text"],
         textarea {
@@ -53,7 +56,7 @@
             border: 1px solid #555;
             border-radius: 4px;
             box-sizing: border-box;
-            background-color: #333; /* Darker input fields */
+            background-color: #333;
             color: #eee;
         }
         textarea {
@@ -91,7 +94,7 @@
         }
         .checkbox-group input[type="checkbox"] {
             margin-right: 10px;
-            transform: scale(1.2); /* Slightly larger checkbox */
+            transform: scale(1.2);
         }
         .button-group {
             display: flex;
@@ -113,7 +116,7 @@
             background-color: #0056b3;
         }
         button#stopButton {
-            background-color: #dc3545; /* Red for stop button */
+            background-color: #dc3545;
         }
         button#stopButton:hover {
             background-color: #c82333;
@@ -126,7 +129,7 @@
             color: #495057;
             word-wrap: break-word;
             white-space: pre-wrap;
-            background-color: #222; /* Darker status background */
+            background-color: #222;
             color: #eee;
             border: 1px solid #444;
         }
@@ -265,8 +268,8 @@
         function stopSending() {
             stopRequested = true;
             document.getElementById('status').textContent += "\n\n--- 送信停止リクエストを受信しました。現在の処理が完了次第停止します。 ---";
-            document.querySelector('button').disabled = false; // Re-enable start button
-            document.getElementById('stopButton').disabled = true; // Disable stop button
+            document.querySelector('button').disabled = false;
+            document.getElementById('stopButton').disabled = true;
         }
 
         async function startSending() {
@@ -313,8 +316,8 @@
             stopRequested = false;
             statusDiv.className = '';
             statusDiv.textContent = '送信を開始します...';
-            document.querySelector('button').disabled = true; // Disable start button
-            document.getElementById('stopButton').disabled = false; // Enable stop button
+            document.querySelector('button').disabled = true;
+            document.getElementById('stopButton').disabled = false;
 
             let successfulSends = 0;
             let failedSends = 0;
@@ -396,7 +399,7 @@
                     }
                     await new Promise(resolve => setTimeout(resolve, sendInterval));
                 }
-                currentTokenIndex = (currentTokenIndex + 1) % tokens.length; // Move to the next token
+                currentTokenIndex = (currentTokenIndex + 1) % tokens.length;
             }
 
             if (!stopRequested) {
