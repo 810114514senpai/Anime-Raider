@@ -207,7 +207,7 @@
         const allEmojis = [
             '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
             '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🥺', '😤', '😠',
-            '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😢', '😭', '🤥', '🤫', '🤭', ' discreet', '🤔', '🤐', '🤫', ' render',
+            '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😢', '😭', '🤥', '🤫', '🤭','🤔', '🤐', '🤫',
             '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '🥳', '😎', '🤓', '🧐', '🤯', '🤫', '🤔', '🤥', '😶', '😐', '😑', '😬', '🙄',
             '😤', '😠', '😡', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻',
             '😼', '😽', '🙀', '😿', '😾', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤙', '🤘', '🤟', '👏', '🙌', '👐',
@@ -215,32 +215,8 @@
             '💋', '🩸', '🦠', '🩻', '💉', '💊', '🩹', '🩼', '🩱', '🩲', '🩳', '🩴', '👙', '👚', '👕', '👖', '👟', '👞', '👠', '👡',
             '👢', '🥿', '🩰', '🎩', '👑', '👒', '🎓', '🧢', '🎗️', '🎽', '🧣', '🧤', '🧥', '🧦', '👗', '👘', '🥻', '🩱', '🩲', '🩳',
             '🩴', '👙', '💼', '🎒', '👜', '👛', '👝', '🛍️', '🛒', '🎁', '🎀', '🎈', '🎉', '🎊', '🎋', '🎍', '🎎', '🎏', '🎐', '🎑',
-            '🧧', '🎇', '🎆', ' sparkles', '💫', '🌟', '✨', '⚡', '🔥', '💥', '☄️', '☀️', '🌞', '🌛', '🌜', '🌑', '🌓', '🌔', '🌕', '🌖',
-            '🌗', '🌘', '🌙', '🌎', '🌍', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🛣️',
-            ' railway_track', ' bridge_at_night', ' cityscape', ' night_with_stars', ' milky_way', ' on_coming_automobile', ' taxi', ' red_car',
-            ' blue_car', ' truck', 'articulated_lorry', 'bus', 'oncoming_bus', 'racing_car', 'motorcycle', 'scooter', 'bike', 'motor_scooter',
-            'police_car', 'oncoming_police_car', 'fire_engine', 'ambulance', 'minibus', 'delivery_truck', 'ferry', 'speedboat', 'boat',
-            'canoe', 'sailboat', 'passenger_ship', 'flight_avion', 'helicopter', 'train', 'mountain_railway', 'steam_locomotive',
-            'bullettrain_side', 'bullettrain_front', 'tram', 'monorail', 'station', 'aerial_tramway', 'suspension_railway', 'vertical_traffic_light',
-            'horizontal_traffic_light', 'construction', 'road_work', 'classical_building', 'post_office', 'hospital', 'bank', 'hotel', 'love_hotel',
-            'convenience_store', 'school', 'department_store', 'factory', 'japanese_castle', 'european_castle', 'wedding', 'tokyo_tower',
-            'statue_of_liberty', 'church', 'mosque', 'synagogue', 'kaaba', 'shinto_shrine', 'crossed_flags', 'fountain', 'tent', 'foggy',
-            'night_clear', 'stars', 'cloud', 'partly_sunny', 'thunder_cloud_and_rain', 'rainbow', 'bridge_at_night', 'volcano', 'milky_way',
-            'ocean', 'cat', 'dog', 'mouse', 'hamster', 'rabbit', 'fox', 'bear', 'panda', 'koala', 'tiger', 'lion', 'cow', 'pig', 'boar',
-            'monkey', 'gorilla', 'orangutan', 'chicken', 'penguin', 'bird', 'baby_chick', 'hatching_chick', 'eagle', 'duck', 'swan',
-            'owl', 'bat', 'wolf', 'wild_boar', 'horse', 'unicorn', 'honeybee', 'bug', 'butterfly', 'snail', 'beetle', 'ant', 'mosquito',
-            'cricket', 'spider', 'scorpion', 'turtle', 'snake', 'lizard', 't-rex', 'sauropod', 'octopus', 'squid', 'shrimp', 'lobster',
-            'crab', 'blowfish', 'tropical_fish', 'fish', 'dolphin', 'whale', 'shark', 'crocodile', 'leopard', 'zebra', 'kangaroo',
-            'badger', 'otter', 'hedgehog', 'skunk', 'racoon', 'llama', 'hippo', 'parrot', 'peacock', 'platypus', 'polar_bear', 'rhinoceros',
-            'seal', 'walrus', 'kangaroo', 'owl', 'bat', 'wolf', 'wild_boar', 'horse', 'unicorn', 'honeybee', 'bug', 'butterfly', 'snail',
-            'beetle', 'ant', 'mosquito', 'cricket', 'spider', 'scorpion', 'turtle', 'snake', 'lizard', 't-rex', 'sauropod', 'octopus',
-            'squid', 'shrimp', 'lobster', 'crab', 'blowfish', 'tropical_fish', 'fish', 'dolphin', 'whale', 'shark', 'crocodile', 'leopard',
-            'zebra', 'kangaroo', 'badger', 'otter', 'hedgehog', 'skunk', 'racoon', 'llama', 'hippo', 'parrot', 'peacock', 'platypus',
-            'polar_bear', 'rhinoceros', 'seal', 'walrus', 'kangaroo', 'owl', 'bat', 'wolf', 'wild_boar', 'horse', 'unicorn', 'honeybee',
-            'bug', 'butterfly', 'snail', 'beetle', 'ant', 'mosquito', 'cricket', 'spider', 'scorpion', 'turtle', 'snake', 'lizard',
-            't-rex', 'sauropod', 'octopus', 'squid', 'shrimp', 'lobster', 'crab', 'blowfish', 'tropical_fish', 'fish', 'dolphin', 'whale',
-            'shark', 'crocodile', 'leopard', 'zebra', 'kangaroo', 'badger', 'otter', 'hedgehog', 'skunk', 'racoon', 'llama', 'hippo',
-            'parrot', 'peacock', 'platypus', 'polar_bear', 'rhinoceros', 'seal', 'walrus', ' kangaroo'
+            '🧧', '🎇', '🎆', '💫', '🌟', '✨', '⚡', '🔥', '💥', '☄️', '☀️', '🌞', '🌛', '🌜', '🌑', '🌓', '🌔', '🌕', '🌖',
+            '🌗', '🌘', '🌙', '🌎', '🌍', '🌏', '🌐', '🗺️', '🗾', '🧭', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🛣️
         ];
 
         function generateRandomString(length) {
